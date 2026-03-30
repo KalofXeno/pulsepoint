@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-03-28 18:14:37",
+  "source_file": "Project_Portfolio.xlsx",
+  "summary": {
+    "total_projects": 1,
+    "health": {
+      "Green": 1,
+      "Yellow": 0,
+      "Red": 0,
+      "Unknown": 0
+    },
+    "statuses": {
+      "In Progress": 1
+    },
+    "programs": {
+      "ESDMD": 1
+    },
+    "coordinators": {
+      "Firstname Lastname": 1
+    }
+  },
+  "projects": [
+    {
+      "new": null,
+      "mtp": null,
+      "program": "ESDMD",
+      "subprogram": "Internal",
+      "project_or_task": "Advanced",
+      "health": "Green",
+      "status": "In Progress",
+      "project_name": "X Proj",
+      "coordinator": "Firstname Lastname",
+      "start_date": "07/28/25",
+      "end_date": "09/30/26",
+      "agdt_flag": null,
+      "latest_update": "Made Draft",
+      "lookahead": "Textbook coming soon",
+      "xm_tr": "TR-416"
+    }
+  ]
+}

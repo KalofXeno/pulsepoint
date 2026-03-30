@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PulsePoint — AEGIS Portfolio Display</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════════════
+   TOKENS — TV DISPLAY
+   All font sizes are min 20px (≈15pt screen).
+   Most body text is 22-26px, labels 20px, values 40-72px.
+   ════════════════════════════════════════════════ */
+:root {
+  --ff: 'Outfit', sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+  --ease: cubic-bezier(.22,1,.36,1);
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-xl: 32px;
+}
+
+[data-theme="dark"] {
+  --c-bg:       #06080c;
+  --c-surf:     #0e1118;
+  --c-raised:   #151920;
+  --c-hover:    #1c2230;
+  --c-border:   #222a3a;
+  --c-border-s: #171d28;
+  --c-t1:       #e8ecf4;
+  --c-t2:       #8290aa;
+  --c-t3:       #4a5670;
+  --c-acc:      #5b8af5;
+  --c-acc-d:    rgba(91,138,245,.12);
+  --c-grn:      #2dd4a0;
+  --c-grn-d:    rgba(45,212,160,.15);
+  --c-ylw:      #f0b429;
+  --c-ylw-d:    rgba(240,180,41,.15);
+  --c-red:      #ef6461;
+  --c-red-d:    rgba(239,100,97,.15);
+}
+
+[data-theme="light"] {
+  --c-bg:       #eef0f4;
+  --c-surf:     #ffffff;
+  --c-raised:   #f2f4f7;
+  --c-hover:    #e8eaf0;
+  --c-border:   #cdd2de;
+  --c-border-s: #dde1ea;
+  --c-t1:       #141820;
+  --c-t2:       #4e5872;
+  --c-t3:       #8a94aa;
+  --c-acc:      #3d6ae8;
+  --c-acc-d:    rgba(61,106,232,.1);
+  --c-grn:      #0e8c60;
+  --c-grn-d:    rgba(14,140,96,.1);
+  --c-ylw:      #a87a08;
+  --c-ylw-d:    rgba(168,122,8,.1);
+  --c-red:      #c43230;
+  --c-red-d:    rgba(196,50,48,.1);
+}
+
+/* ════════════════════════════════════════════════
+   RESET
+   ════════════════════════════════════════════════ */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0 }
+html { font-size:22px; }
+body {
+  font-family: var(--ff);
+  background: var(--c-bg);
+  color: var(--c-t1);
+  min-height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background:var(--c-acc); color:#fff }
+
+/* ════════════════════════════════════════════════
+   LAYOUT — full viewport, no scroll
+   ════════════════════════════════════════════════ */
+.tv {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  padding: 36px 48px 32px;
+  gap: 28px;
+  overflow: hidden;
+}
+
+/* ── HEADER ─────────────────────────────────── */
+.tv-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tv-hdr-left {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+}
+
+.tv-hdr h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -.03em;
+}
+
+.tv-hdr .pill {
+  font-size: .82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  background: var(--c-acc-d);
+  color: var(--c-acc);
+  padding: 6px 18px;
+  border-radius: 30px;
+}
+
+.tv-hdr-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.tv-hdr .ts {
+  font-family: var(--mono);
+  font-size: .9rem;
+  color: var(--c-t3);
+}
+
+.tv-hdr .clock {
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--c-t2);
+}
+
+/* Theme toggle — optional on TV but included */
+.tog {
+  width: 56px; height: 30px;
+  border-radius: 15px;
+  background: var(--c-border);
+  border: none; cursor: pointer;
+  position: relative;
+  transition: background .3s;
+  flex-shrink: 0;
+}
+.tog::after {
+  content:''; position:absolute; top:4px; left:4px;
+  width:22px; height:22px; border-radius:50%;
+  background:var(--c-t1);
+  transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+}
+[data-theme="light"] .tog::after { transform:translateX(26px) }
+.tog-lbl { font-size:.82rem; color:var(--c-t3); user-select:none }
+
+/* ── TOP ROW: KPIs + Charts ───────────────── */
+.tv-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* KPI strip */
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+.kpi {
+  background: var(--c-surf);
+  border: 1px solid var(--c-border-s);
+  border-radius: var(--r-lg);
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kpi-l {
+  font-size: .82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--c-t3);
+}
+
+.kpi-v {
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: -.04em;
+  line-height: 1;
+}
+
+.kpi-v.grn { color:var(--c-grn) }
+.kpi-v.ylw { color:var(--c-ylw) }
+.kpi-v.red { color:var(--c-red) }
+.kpi-v.acc { color:var(--c-acc) }
+
+/* Charts panel */
+.charts-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.ccard {
+  background: var(--c-surf);
+  border: 1px solid var(--c-border-s);
+  border-radius: var(--r-lg);
+  padding: 22px 26px 18px;
+}
+
+.ccard h3 {
+  font-size: .82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--c-t3);
+  margin-bottom: 16px;
+}
+
+/* Health bars */
+.bars { display:flex; flex-direction:column; gap:12px }
+.brow { display:flex; align-items:center; gap:12px }
+.brow .bl {
+  width: 80px; font-size:1rem; font-weight:500;
+  color:var(--c-t2); text-align:right; flex-shrink:0;
+}
+.btrack {
+  flex:1; height:28px; background:var(--c-raised);
+  border-radius:var(--r-sm); overflow:hidden;
+}
+.bfill {
+  height:100%; border-radius:var(--r-sm);
+  transition:width .55s var(--ease); min-width:3px;
+}
+.bfill.Green { background:var(--c-grn) }
+.bfill.Yellow { background:var(--c-ylw) }
+.bfill.Red { background:var(--c-red) }
+.brow .bn {
+  width:40px; font-size:1.05rem; font-weight:600;
+  font-family:var(--mono); color:var(--c-t1);
+}
+
+/* Program bars */
+.pbars { display:flex; flex-direction:column; gap:10px }
+.prow { display:flex; align-items:center; gap:12px }
+.prow .pl {
+  width:100px; font-size:.9rem; font-weight:500;
+  color:var(--c-t2); text-align:right; flex-shrink:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.ptrack {
+  flex:1; height:24px; background:var(--c-raised);
+  border-radius:var(--r-sm); overflow:hidden;
+}
+.pfill {
+  height:100%; border-radius:var(--r-sm);
+  background:var(--c-acc); opacity:.75;
+  transition:width .55s var(--ease);
+}
+.prow .pn {
+  width:36px; font-size:.95rem; font-weight:600;
+  font-family:var(--mono); color:var(--c-t1);
+}
+
+/* ── SCROLLING TABLE ─────────────────────────── */
+.tv-table-wrap {
+  background: var(--c-surf);
+  border: 1px solid var(--c-border-s);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;  /* allow grid child to shrink */
+}
+
+.tv-table-head {
+  display: grid;
+  grid-template-columns: 50px 2.5fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 0;
+  background: var(--c-raised);
+  border-bottom: 2px solid var(--c-border);
+  padding: 14px 28px;
+}
+
+.tv-table-head span {
+  font-size: .82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--c-t3);
+}
+
+.tv-scroll-area {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.tv-scroll-inner {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  /* Animated by JS */
+}
+
+.tv-row {
+  display: grid;
+  grid-template-columns: 50px 2.5fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 0;
+  padding: 14px 28px;
+  border-bottom: 1px solid var(--c-border-s);
+  align-items: center;
+  transition: background .2s;
+}
+
+.tv-row:nth-child(even) {
+  background: rgba(255,255,255,.015);
+}
+
+[data-theme="light"] .tv-row:nth-child(even) {
+  background: rgba(0,0,0,.018);
+}
+
+.tv-row span {
+  font-size: .95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tv-row .mono {
+  font-family: var(--mono);
+  font-size: .9rem;
+  color: var(--c-t2);
+}
+
+/* Health dot — larger for TV */
+.hdot {
+  display:inline-block; width:16px; height:16px; border-radius:50%;
+}
+.hdot.Green  { background:var(--c-grn); box-shadow:0 0 10px var(--c-grn-d) }
+.hdot.Yellow { background:var(--c-ylw); box-shadow:0 0 10px var(--c-ylw-d) }
+.hdot.Red    { background:var(--c-red); box-shadow:0 0 10px var(--c-red-d) }
+.hdot.Unknown { background:var(--c-t3) }
+
+/* Status chip — larger */
+.sc {
+  display:inline-block; font-size:.82rem; font-weight:600;
+  padding:4px 14px; border-radius:24px; white-space:nowrap;
+}
+.sc.in-progress { background:var(--c-acc-d); color:var(--c-acc) }
+.sc.complete    { background:var(--c-grn-d); color:var(--c-grn) }
+.sc.not-started { background:var(--c-raised); color:var(--c-t3) }
+.sc.on-hold     { background:var(--c-ylw-d); color:var(--c-ylw) }
+
+/* ── Scroll progress indicator ──────────────── */
+.scroll-progress {
+  height: 4px;
+  background: var(--c-raised);
+  border-radius: 2px;
+  margin: 0 28px 12px;
+  overflow: hidden;
+}
+
+.scroll-progress-fill {
+  height: 100%;
+  background: var(--c-acc);
+  border-radius: 2px;
+  transition: width .3s;
+  width: 0%;
+}
+
+/* ── Page indicator ─────────────────────────── */
+.page-ind {
+  text-align: center;
+  padding: 8px 0 14px;
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--c-t3);
+  font-family: var(--mono);
+}
+
+/* ════════════════════════════════════════════════
+   UTILITY
+   ════════════════════════════════════════════════ */
+.empty { text-align:center; padding:60px; color:var(--c-t3); font-size:1.2rem }
+
+@keyframes fup {
+  from { opacity:0; transform:translateY(14px) }
+  to   { opacity:1; transform:translateY(0) }
+}
+.ani { animation: fup .5s var(--ease) both }
+
+/* ════════════════════════════════════════════════
+   RESPONSIVE — scale down for smaller screens
+   while maintaining min readability
+   ════════════════════════════════════════════════ */
+@media (max-width: 1600px) {
+  html { font-size: 20px }
+  .tv { padding: 28px 36px 24px; gap: 20px }
+  .kpi-v { font-size: 2.4rem }
+}
+
+@media (max-width: 1280px) {
+  .tv-top { grid-template-columns: 1fr }
+  .kpi-strip { grid-template-columns: repeat(5, 1fr) }
+}
+</style>
+</head>
+<body>
+
+<div class="tv">
+
+  <!-- HEADER -->
+  <header class="tv-hdr ani">
+    <div class="tv-hdr-left">
+      <h1>PulsePoint</h1>
+      <span class="pill" id="badge">—</span>
+    </div>
+    <div class="tv-hdr-right">
+      <span class="ts" id="ts"></span>
+      <span class="clock" id="clock"></span>
+      <span class="tog-lbl">☀︎</span>
+      <button class="tog" id="togBtn" aria-label="Toggle theme"></button>
+      <span class="tog-lbl">☾</span>
+    </div>
+  </header>
+
+  <!-- TOP ROW: KPIs left, Charts right -->
+  <section class="tv-top ani" style="animation-delay:.08s">
+    <div class="kpi-strip" id="kpis"></div>
+    <div class="charts-panel">
+      <div class="ccard"><h3>Health</h3><div class="bars" id="hbars"></div></div>
+      <div class="ccard"><h3>Program</h3><div class="pbars" id="pbars"></div></div>
+    </div>
+  </section>
+
+  <!-- SCROLLING PROJECT TABLE -->
+  <div class="tv-table-wrap ani" style="animation-delay:.14s">
+    <div class="tv-table-head">
+      <span></span>
+      <span>Project</span>
+      <span>Program</span>
+      <span>Coordinator</span>
+      <span>Status</span>
+      <span>End Date</span>
+      <span>TR</span>
+    </div>
+    <div class="tv-scroll-area" id="scrollArea">
+      <div class="tv-scroll-inner" id="scrollInner"></div>
+    </div>
+    <div class="scroll-progress"><div class="scroll-progress-fill" id="scrollProgress"></div></div>
+    <div class="page-ind" id="pageInd"></div>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════ */
+let D = null;
+
+/* ═══ THEME ═══ */
+const H = document.documentElement;
+const TB = document.getElementById('togBtn');
+function setT(t) { H.dataset.theme = t; localStorage.setItem('pp-tv-theme', t) }
+TB.onclick = () => setT(H.dataset.theme === 'dark' ? 'light' : 'dark');
+{ const s = localStorage.getItem('pp-tv-theme'); if (s) setT(s) }
+
+/* ═══ CLOCK ═══ */
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+/* ═══ LOAD ═══ */
+async function load() {
+  try {
+    if (window.__PULSEPOINT_DATA__) { D = window.__PULSEPOINT_DATA__; init(); return }
+    const r = await fetch('dashboard_data.json'); D = await r.json(); init();
+  } catch(e) {
+    document.querySelector('.tv').innerHTML =
+      '<div class="empty">Could not load data.<br>Run <code>python update_dashboard.py export.xlsx --embed index_tv.html</code></div>';
+  }
+}
+
+function init() {
+  renderKPIs();
+  renderCharts();
+  renderAllRows();
+  startAutoScroll();
+  document.getElementById('ts').textContent = 'Updated ' + D.generated_at;
+  document.getElementById('badge').textContent = D.summary.total_projects + ' Projects';
+}
+
+/* ═══ KPIs ═══ */
+function renderKPIs() {
+  const s = D.summary, h = s.health;
+  const inP = s.statuses['In Progress'] || 0;
+  const cards = [
+    { l:'Total',       v:s.total_projects, c:'acc' },
+    { l:'Green',       v:h.Green||0,       c:'grn' },
+    { l:'Yellow',      v:h.Yellow||0,      c:'ylw' },
+    { l:'Red',         v:h.Red||0,         c:'red' },
+    { l:'In Progress', v:inP,              c:'acc' },
+  ];
+  document.getElementById('kpis').innerHTML = cards.map(c =>
+    `<div class="kpi"><span class="kpi-l">${c.l}</span><span class="kpi-v ${c.c}">${c.v}</span></div>`
+  ).join('');
+}
+
+/* ═══ CHARTS ═══ */
+function renderCharts() {
+  const h = D.summary.health;
+  const mx = Math.max(h.Green||0, h.Yellow||0, h.Red||0, 1);
+  document.getElementById('hbars').innerHTML = ['Green','Yellow','Red'].map(k => {
+    const v = h[k]||0, w = (v/mx)*100;
+    return `<div class="brow"><span class="bl">${k}</span><div class="btrack"><div class="bfill ${k}" style="width:${w}%"></div></div><span class="bn">${v}</span></div>`;
+  }).join('');
+
+  const prg = Object.entries(D.summary.programs).sort((a,b) => b[1]-a[1]);
+  const mp = prg.length ? prg[0][1] : 1;
+  document.getElementById('pbars').innerHTML = prg.map(([n,c]) => {
+    const w = (c/mp)*100;
+    return `<div class="prow"><span class="pl" title="${n}">${n}</span><div class="ptrack"><div class="pfill" style="width:${w}%"></div></div><span class="pn">${c}</span></div>`;
+  }).join('');
+}
+
+/* ═══ TABLE ROWS ═══ */
+function renderAllRows() {
+  const inner = document.getElementById('scrollInner');
+  inner.innerHTML = D.projects.map(p => `
+    <div class="tv-row">
+      <span><span class="hdot ${p.health||'Unknown'}"></span></span>
+      <span title="${e(p.project_name)}">${e(p.project_name)}</span>
+      <span>${e(p.program)}</span>
+      <span>${e(p.coordinator)}</span>
+      <span>${sc(p.status)}</span>
+      <span class="mono">${p.end_date||'—'}</span>
+      <span class="mono">${e(p.xm_tr)||'—'}</span>
+    </div>
+  `).join('');
+}
+
+/* ═══ AUTO-SCROLL — page through projects ═══ */
+function startAutoScroll() {
+  const area = document.getElementById('scrollArea');
+  const inner = document.getElementById('scrollInner');
+  const bar = document.getElementById('scrollProgress');
+  const ind = document.getElementById('pageInd');
+  const total = D.projects.length;
+
+  if (total === 0) return;
+
+  // Measure how many rows fit
+  const areaH = area.clientHeight;
+  const firstRow = inner.querySelector('.tv-row');
+  if (!firstRow) return;
+  const rowH = firstRow.offsetHeight;
+  const visibleRows = Math.max(1, Math.floor(areaH / rowH));
+  const totalPages = Math.ceil(total / visibleRows);
+
+  let currentPage = 0;
+  const DWELL_MS = 8000;   // 8 seconds per page
+  const FADE_MS = 500;
+
+  function showPage(pg) {
+    currentPage = pg % totalPages;
+    const offset = currentPage * visibleRows * rowH;
+
+    inner.style.transition = `transform ${FADE_MS}ms var(--ease), opacity ${FADE_MS/2}ms`;
+    inner.style.opacity = '0';
+
+    setTimeout(() => {
+      inner.style.transform = `translateY(-${offset}px)`;
+      inner.style.opacity = '1';
+    }, FADE_MS / 2);
+
+    // Update progress bar
+    const pct = ((currentPage + 1) / totalPages) * 100;
+    bar.style.width = pct + '%';
+
+    // Update page indicator
+    const startItem = currentPage * visibleRows + 1;
+    const endItem = Math.min(total, (currentPage + 1) * visibleRows);
+    ind.textContent = `Showing ${startItem}–${endItem} of ${total}`;
+  }
+
+  showPage(0);
+  setInterval(() => showPage(currentPage + 1), DWELL_MS);
+}
+
+/* ═══ HELPERS ═══ */
+function e(s) {
+  return s == null ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function sc(s) {
+  if (!s) return '<span class="sc not-started">Unknown</span>';
+  const c = s.toLowerCase().replace(/\s+/g,'-');
+  return `<span class="sc ${c}">${e(s)}</span>`;
+}
+
+/* ═══ BOOT ═══ */
+load();
+</script>
+</body>
+</html>
